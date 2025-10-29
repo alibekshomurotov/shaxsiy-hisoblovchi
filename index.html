@@ -19,7 +19,16 @@
         .xarajat { border-color: red; }
         .action-btns button { width: auto; margin-left: 5px; background: #444; }
         .action-btns button:hover { background: #000; }
-    </style>
+    @media (max-width: 480px) {
+    .container { padding: 15px; }
+    input, select, button { padding: 8px; font-size: 14px; }
+    h2 { font-size: 20px; }
+    h3 { font-size: 16px; }
+    .balance-box { font-size: 16px; }
+    li { flex-direction: column; text-align: left; }
+    .action-btns { margin-top: 5px; }
+}
+</style>
 </head>
 <body>
     <div class="container">
