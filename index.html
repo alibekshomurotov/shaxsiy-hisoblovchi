@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shaxsiy Budjet Hisoblagichi</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f1f1f1; margin: 0; padding: 0; }
+        .container { width: 95%; max-width: 700px; background: white; margin: 20px auto; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
+        h2, h3 { text-align: center; }
+        input, select, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; }
+        button { cursor: pointer; background: green; color: white; }
+        button:hover { opacity: 0.9; }
+        .balance-box { background: #222; color: #fff; padding: 10px; text-align: center; border-radius: 6px; font-size: 18px; margin-bottom: 10px; }
+        ul { list-style: none; padding: 0; }
+        li { background: #eee; padding: 10px; margin: 5px 0; display: flex; justify-content: space-between; border-left: 5px solid; }
+        .daromad { border-color: green; }
+        .xarajat { border-color: red; }
+        .action-btns button { width: auto; margin-left: 5px; background: #444; }
+        .action-btns button:hover { background: #000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Shaxsiy Budjet Hisoblagichi</h2>
+
+        <div class="balance-box">
+            Balans: <span id="balance">0</span> so‘m
+        </div>
+
+        <h3>Tranzaksiya qo‘shish</h3>
+        <input type="text" id="desc" placeholder="Tavsif">
+        <input type="number" id="amount" placeholder="Summasi">
+        <input type="date" id="date">
+        <select id="category">
+            <option value="Ovqat">Ovqat</option>
+            <option value="Transport">Transport</option>
+            <option value="Uy-joy">Uy-joy</option>
+            <option value="Salomatlik">Salomatlik</option>
+            <option value="O‘yin-kulgu">O‘yin-kulgu</option>
+            <option value="Boshqa">Boshqa</option>
+        </select>
+        <select id="type">
+            <option value="daromad">Daromad</option>
+            <option value="xarajat">Xarajat</option>
+        </select>
+        <button onclick="addTransaction()">Qo‘shish</button>
+
+        <h3>Statistika</h3>
+        <canvas id="chart" height="120"></canvas>
+
+        <h3>Tranzaksiyalar</h3>
+        <ul id="list"></ul>
+
+        <button style="background:red" onclick="clearAll()">Barchasini o‘chirish</button>
+    </div>
+
+<script>
+let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+let chart;
+updateUI();
+
+function addTransaction() {
+    const desc = document.getElementById("desc").value;
+    const amount = Number(document.getElementById("amount").value);
+    const date = document.getElementById("date").value;
+    const category = document.getElementById("category").value;
+    const type = document.getElementById("type").value;
+
+    if (!desc || !amount || !date) {
+        alert("Iltimos barcha maydonlarni to‘ldiring!");
+        return;
+    }
+
+    const transaction = { id: Date.now(), desc, amount, type, date, category };
+    transactions.push(transaction);
+    saveData();
+    updateUI();
+
+    document.getElementById("desc").value = "";
+    document.getElementById("amount").value = "";
+    document.getElementById("date").value = "";
+}
+
+function updateUI() {
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+
+    let balans = 0, daromad = 0, xarajat = 0;
+
+    transactions.forEach(t => {
+        const li = document.createElement("li");
+        li.classList.add(t.type);
+        li.innerHTML = `
+            <span>${t.date} | ${t.category} — ${t.desc} — ${t.amount} so‘m</span>
+            <span class="action-btns">
+                <button onclick="editItem(${t.id})">✏️</button>
+                <button onclick="deleteItem(${t.id})">🗑</button>
+            </span>
+        `;
+        list.appendChild(li);
+
+        if (t.type === "daromad") { daromad += t.amount; balans += t.amount; }
+        else { xarajat += t.amount; balans -= t.amount; }
+    });
+
+    document.getElementById("balance").innerText = balans;
+    updateChart(daromad, xarajat);
+}
+
+function editItem(id) {
+    const t = transactions.find(x => x.id === id);
+    const newDesc = prompt("Yangi tavsif:", t.desc);
+    const newAmount = Number(prompt("Yangi summa:", t.amount));
+    if (newDesc && newAmount) {
+        t.desc = newDesc;
+        t.amount = newAmount;
+        saveData();
+        updateUI();
+    }
+}
+
+function deleteItem(id) {
+    transactions = transactions.filter(t => t.id !== id);
+    saveData();
+    updateUI();
+}
+
+function clearAll() {
+    if (confirm("Barcha ma’lumotlarni o‘chirmoqchimisiz?")) {
+        transactions = [];
+        saveData();
+        updateUI();
+    }
+}
+
+function saveData() {
+    localStorage.setItem("transactions", JSON.stringify(transactions));
+}
+
+function updateChart(dar, xar) {
+    const ctx = document.getElementById('chart').getContext('2d');
+    if (chart) chart.destroy();
+    chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Daromad', 'Xarajat'],
+            datasets: [{ data: [dar, xar] }]
+        }
+    });
+}
+</script>
+
+</body>
+</html>
