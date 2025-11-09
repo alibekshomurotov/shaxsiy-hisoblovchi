@@ -19,6 +19,7 @@
         .xarajat { border-color: red; }
         .action-btns button { width: auto; margin-left: 5px; background: #444; }
         .action-btns button:hover { background: #000; }
+<<<<<<< HEAD
     @media (max-width: 480px) {
     .container { padding: 15px; }
     input, select, button { padding: 8px; font-size: 14px; }
@@ -29,6 +30,18 @@
     .action-btns { margin-top: 5px; }
 }
 </style>
+=======
+        @media (max-width: 480px) {
+            .container { padding: 15px; }
+            input, select, button { padding: 8px; font-size: 14px; }
+            h2 { font-size: 20px; }
+            h3 { font-size: 16px; }
+            .balance-box { font-size: 16px; }
+            li { flex-direction: column; text-align: left; }
+            .action-btns { margin-top: 5px; }
+        }
+    </style>
+>>>>>>> c25428a (Yangilangan index.html fayli qo‘shildi — foydalanuvchi akkaunti tizim)
 </head>
 <body>
     <div class="container">
@@ -66,7 +79,39 @@
     </div>
 
 <script>
-let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+/* --- Foydalanuvchi tizimi --- */
+let currentUser = localStorage.getItem("currentUser");
+if (!currentUser) {
+    currentUser = prompt("Ismingizni kiriting:");
+    if (currentUser) {
+        localStorage.setItem("currentUser", currentUser);
+    } else {
+        alert("Ismingizsiz tizim ishlamaydi!");
+        location.reload();
+    }
+}
+document.querySelector("h2").innerHTML = `Salom, ${currentUser}!<br>Shaxsiy Budjet Hisoblagich`;
+
+// Logout tugmasi
+const logoutBtn = document.createElement("button");
+logoutBtn.textContent = "🚪 Chiqish";
+logoutBtn.style.background = "#444";
+logoutBtn.style.color = "#fff";
+logoutBtn.style.marginBottom = "10px";
+logoutBtn.onclick = () => {
+    if (confirm("Haqiqatan ham chiqmoqchimisiz?")) {
+        localStorage.removeItem("currentUser");
+        location.reload();
+    }
+};
+document.querySelector(".container").prepend(logoutBtn);
+
+function getKey() {
+    return "transactions_" + currentUser;
+}
+
+/* --- Asosiy funksiyalar --- */
+let transactions = JSON.parse(localStorage.getItem(getKey())) || [];
 let chart;
 updateUI();
 
@@ -145,7 +190,7 @@ function clearAll() {
 }
 
 function saveData() {
-    localStorage.setItem("transactions", JSON.stringify(transactions));
+    localStorage.setItem(getKey(), JSON.stringify(transactions));
 }
 
 function updateChart(dar, xar) {
@@ -155,7 +200,7 @@ function updateChart(dar, xar) {
         type: 'bar',
         data: {
             labels: ['Daromad', 'Xarajat'],
-            datasets: [{ data: [dar, xar] }]
+            datasets: [{ data: [dar, xar], backgroundColor: ['green', 'red'] }]
         }
     });
 }
